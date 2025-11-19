@@ -1,36 +1,31 @@
-from src.hh_api import HeadHunterAPI
-from src.vacancy import Vacancy
-from src.storage import JSONSaver
-from src.utils import filter_vacancies, sort_vacancies_by_salary, get_top_vacancies
+from typing import List
+from .hh_api import HeadHunterAPI
+from .vacancy import Vacancy
+from .storage import JSONSaver
+from .utils import filter_vacancies, sort_vacancies_by_salary, get_top_vacancies
 
 
-def user_interaction():
-    """Простое взаимодействие с пользователем"""
-    query = input("Введите поисковый запрос: ")
-    top_n = int(input("Сколько вакансий показать? "))
-
+def user_interaction() -> None:
+    """Функция взаимодействия с пользователем через консоль"""
     api = HeadHunterAPI()
     saver = JSONSaver()
 
-    print("\nЗагружаем данные с hh.ru...\n")
-    vacancies_raw = api.get_vacancies(query, per_page=top_n)
-    vacancies = []
+    search_query = input("Введите поисковый запрос: ")
+    top_n = int(input("Введите количество вакансий для вывода: "))
+    filter_word = input("Введите ключевое слово для фильтрации вакансий: ")
 
-    for v in vacancies_raw:
-        salary_info = v.get("salary") or {}
-        salary = salary_info.get("from") or salary_info.get("to") or 0
-        vacancy = Vacancy(
-            title=v.get("name", "Без названия"),
-            url=v.get("alternate_url", ""),
-            salary=salary,
-            description=v.get("snippet", {}).get("requirement", "") or "",
-        )
-        saver.add_vacancy(vacancy.to_dict())
-        vacancies.append(vacancy)
+    raw_vacancies = api.get_vacancies(search_query, per_page=50)
+    vacancies_list: List[Vacancy] = Vacancy.cast_to_object_list(raw_vacancies)
 
-    vacancies = sort_vacancies_by_salary(vacancies)
-    top = get_top_vacancies(vacancies, top_n)
+    # Сохраняем вакансии в файл
+    for v in vacancies_list:
+        saver.add_vacancy(v.to_dict())
+
+    # Фильтрация и сортировка
+    filtered = filter_vacancies(vacancies_list, filter_word)
+    sorted_v = sort_vacancies_by_salary(filtered)
+    top = get_top_vacancies(sorted_v, top_n)
 
     print("\nТоп вакансий:")
     for v in top:
-        print(f"{v.title} — {v.salary}₽ — {v.url}")
+        print(v)

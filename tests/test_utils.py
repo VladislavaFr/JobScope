@@ -1,20 +1,23 @@
-from src.vacancy import Vacancy
 from src.utils import filter_vacancies, sort_vacancies_by_salary, get_top_vacancies
+from src.vacancy import Vacancy
+
 
 def test_filter_vacancies():
-    v = [Vacancy("A", "url", 10, "Python developer")]
-    result = filter_vacancies(v, "python")
-    assert len(result) == 1
+    vac1 = Vacancy("A", "link1", 100, "Python")
+    vac2 = Vacancy("B", "link2", 200, "Java")
+    filtered = filter_vacancies([vac1, vac2], "Python")
+    assert filtered == [vac1]
+
 
 def test_sort_vacancies_by_salary():
-    v1 = Vacancy("A", "url", 10, "desc")
-    v2 = Vacancy("B", "url", 20, "desc")
-    sorted_v = sort_vacancies_by_salary([v1, v2])
-    assert sorted_v[0].salary == 20
-    assert sorted_v[1].salary == 10
+    vac1 = Vacancy("A", "link1", 100, "Desc")
+    vac2 = Vacancy("B", "link2", 200, "Desc")
+    sorted_list = sort_vacancies_by_salary([vac1, vac2])
+    assert sorted_list[0] == vac2  # reverse=True по умолчанию
+
 
 def test_get_top_vacancies():
-    v = [Vacancy("A", "url", 10, "desc"), Vacancy("B", "url", 20, "desc")]
-    top = get_top_vacancies(v, 1)
-    assert len(top) == 1
-    assert top[0].title == "B"
+    vac1 = Vacancy("A", "link1", 100, "Desc")
+    vac2 = Vacancy("B", "link2", 200, "Desc")
+    top = get_top_vacancies([vac2, vac1], 1)
+    assert top == [vac2]
